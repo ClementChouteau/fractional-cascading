@@ -1,11 +1,12 @@
 #pragma once
 
+template<typename KeyType>
 struct Element
 {
   struct Element* prev;
   struct Element* next;
   struct Element* out;
-  long value;
+  KeyType value;
 
   inline bool isPromoted() const
   {
@@ -13,7 +14,8 @@ struct Element
   }
 };
 
-inline bool operator<(const Element& rhs, long lhs)
+template<typename KeyType>
+inline bool operator<(const Element<KeyType>& rhs, KeyType lhs)
 {
   return rhs.value < lhs;
 }

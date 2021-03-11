@@ -42,8 +42,8 @@ TEST(FractionalCascadingTest, simpleTest)
 TEST_P(FractionalCascadingTest, shouldFindSameResultsAsNaive)
 {
   auto input = generate_input(GetParam().numberOfLists, GetParam().numberOfItems);
-  const auto binarySearch = BinarySearch(input);
-  const auto cascade = FractionalCascading(input);
+  const auto binarySearch = BinarySearch<long>(input);
+  const auto cascade = FractionalCascading<long>(input);
 
   for (long i=0; i<GetParam().repetitions; i++)
   {

@@ -1,11 +1,13 @@
 #pragma once
 
-FractionalCascading::FractionalCascading(const std::vector<std::vector<long>>& input)
+template<typename KeyType>
+FractionalCascading<KeyType>::FractionalCascading(const std::vector<std::vector<KeyType>>& input)
 : _cascade(build_fractional_cascading(input))
 {
 }
 
-void FractionalCascading::binary_search(long key, std::function<void(long)> onFound) const
+template<typename KeyType>
+void FractionalCascading<KeyType>::binary_search(KeyType key, std::function<void(KeyType)> onFound) const
 {
   if (_cascade.empty() || _cascade[0].empty())
     return;
@@ -54,26 +56,28 @@ void FractionalCascading::binary_search(long key, std::function<void(long)> onFo
   }
 }
 
-std::size_t FractionalCascading::count(long key) const
+template<typename KeyType>
+std::size_t FractionalCascading<KeyType>::count(KeyType key) const
 {
   std::size_t count = 0;
-  binary_search(key, [&count](long){ count++; });
+  binary_search(key, [&count](KeyType){ count++; });
   return count;
 }
 
-std::vector<std::vector<Element>> FractionalCascading::build_fractional_cascading(const std::vector<std::vector<long>>& input)
+template<typename KeyType>
+std::vector<std::vector<Element<KeyType>>> FractionalCascading<KeyType>::build_fractional_cascading(const std::vector<std::vector<KeyType>>& input)
 {
-  std::vector<std::vector<Element>> output;
+  std::vector<std::vector<Element<KeyType>>> output;
   if (input.empty())
     return output;
 
   output.resize(input.size());
   output.back().resize(input.back().size());
 
-  std::vector<long> input_sorted(input.back());
+  std::vector<KeyType> input_sorted(input.back());
   std::sort(input_sorted.begin(), input_sorted.end());
 
-  std::vector<Element*> promoted;
+  std::vector<Element<KeyType>*> promoted;
   for (std::size_t i=0; i < input_sorted.size(); ++i)
   {
     auto& element = output.back()[i];
@@ -86,7 +90,7 @@ std::vector<std::vector<Element>> FractionalCascading::build_fractional_cascadin
     element.out = nullptr;
   }
 
-  std::vector<Element*> next_promoted;
+  std::vector<Element<KeyType>*> next_promoted;
   for (auto k = (long) input.size() - 2; k >= 0; --k)
   {
     input_sorted = input[k];
@@ -96,8 +100,8 @@ std::vector<std::vector<Element>> FractionalCascading::build_fractional_cascadin
     std::size_t i = 0;
     std::size_t j = 0;
 
-    Element* prev_promoted_value = nullptr;
-    Element* prev_value = nullptr;
+    Element<KeyType>* prev_promoted_value = nullptr;
+    Element<KeyType>* prev_value = nullptr;
     while (i < input_sorted.size() || j < promoted.size())
     {
       // We must make sure that the non promoted are always before the promoted
@@ -105,7 +109,7 @@ std::vector<std::vector<Element>> FractionalCascading::build_fractional_cascadin
       // Lower (or equal) value is a non promoted, or promoted are exhausted
       if (i < input_sorted.size() && (j >= promoted.size() || input_sorted[i] <= promoted[j]->value))
       {
-        output[k].push_back(Element());
+        output[k].push_back(Element<KeyType>());
         auto& element = output[k].back();
 
         if (((i+j) & 1) == 0)
@@ -122,7 +126,7 @@ std::vector<std::vector<Element>> FractionalCascading::build_fractional_cascadin
       // Lower (strict) value is a promoted, or non promoted are exhausted
       while (j < promoted.size() && (i >= input_sorted.size() || promoted[j]->value < input_sorted[i]))
       {
-        output[k].push_back(Element());
+        output[k].push_back(Element<KeyType>());
         auto& element = output[k].back();
 
         if (((i+j) & 1) == 0)
@@ -138,8 +142,8 @@ std::vector<std::vector<Element>> FractionalCascading::build_fractional_cascadin
     }
 
     // Another pass to fill next
-    Element* next_promoted_value = nullptr;
-    Element* next_value = nullptr;
+    Element<KeyType>* next_promoted_value = nullptr;
+    Element<KeyType>* next_value = nullptr;
     for (auto it = output[k].rbegin(); it != output[k].rend(); ++it)
     {
       if (it->isPromoted())
@@ -161,9 +165,10 @@ std::vector<std::vector<Element>> FractionalCascading::build_fractional_cascadin
   return output;
 }
 
-inline std::pair<const Element*, const Element*> FractionalCascading::get_nearest_lower_upper_promoted(const Element* first, const Element* last, const Element* upper) const
+template<typename KeyType>
+inline std::pair<const Element<KeyType>*, const Element<KeyType>*> FractionalCascading<KeyType>::get_nearest_lower_upper_promoted(const Element<KeyType>* first, const Element<KeyType>* last, const Element<KeyType>* upper) const
 {
-  const Element* lower = nullptr;
+  const Element<KeyType>* lower = nullptr;
   if (upper)
   {
     if (upper->isPromoted())

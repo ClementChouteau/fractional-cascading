@@ -22,7 +22,7 @@ void flush_cache()
 static void BM_binary_search_count_naive(benchmark::State& state)
 {
   // Perform setup here
-  static const auto binarySearch = BinarySearch(generate_input(N, M));
+  static const auto binarySearch = BinarySearch<long>(generate_input(N, M));
   for (auto _ : state)
   {
     // This code gets timed
@@ -38,7 +38,7 @@ BENCHMARK(BM_binary_search_count_naive)->Unit(benchmark::kMicrosecond);
 static void BM_binary_search_count_fractional_cascading(benchmark::State& state)
 {
   // Perform setup here
-  static const auto cascade = FractionalCascading(generate_input(N, M));
+  static const auto cascade = FractionalCascading<long>(generate_input(N, M));
   for (auto _ : state)
   {
     // This code gets timed
@@ -54,7 +54,7 @@ BENCHMARK(BM_binary_search_count_fractional_cascading)->Unit(benchmark::kMicrose
 static void BM_binary_search_count_naive_no_cache(benchmark::State& state)
 {
   // Perform setup here
-  static const auto binarySearch = BinarySearch(generate_input(N, M));
+  static const auto binarySearch = BinarySearch<long>(generate_input(N, M));
   for (auto _ : state)
   {
     state.PauseTiming();
@@ -71,7 +71,7 @@ BENCHMARK(BM_binary_search_count_naive_no_cache)->Unit(benchmark::kMicrosecond)-
 static void BM_binary_search_count_fractional_cascading_no_cache(benchmark::State& state)
 {
   // Perform setup here
-  static const auto cascade = FractionalCascading(generate_input(N, M));
+  static const auto cascade = FractionalCascading<long>(generate_input(N, M));
   for (auto _ : state)
   {
     state.PauseTiming();
@@ -94,7 +94,7 @@ static void BM_build_naive(benchmark::State& state)
     auto input = generate_input(N, M);
     state.ResumeTiming();
     // This code gets timed
-    benchmark::DoNotOptimize(BinarySearch(std::move(input)));
+    benchmark::DoNotOptimize(BinarySearch<long>(std::move(input)));
   }
 }
 
@@ -107,7 +107,7 @@ static void BM_build_fractional_cascading(benchmark::State& state)
   for (auto _ : state)
   {
     // This code gets timed
-    benchmark::DoNotOptimize(FractionalCascading(input));
+    benchmark::DoNotOptimize(FractionalCascading<long>(input));
   }
 }
 

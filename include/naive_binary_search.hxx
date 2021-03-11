@@ -1,14 +1,16 @@
 #pragma once
 
-template<typename InputType>
-BinarySearch::BinarySearch(InputType&& input)
-: _input(std::forward<InputType>(input))
+template<typename KeyType>
+template<typename Input>
+BinarySearch<KeyType>::BinarySearch(Input&& input)
+: _input(std::forward<Input>(input))
 {
   for (auto& line : _input)
     std::sort(line.begin(), line.end());
 }
 
-void BinarySearch::binary_search(long key, std::function<void(long)> onFound) const
+template<typename KeyType>
+void BinarySearch<KeyType>::binary_search(KeyType key, std::function<void(KeyType)> onFound) const
 {
   for (const auto& list : _input)
   {
@@ -17,9 +19,10 @@ void BinarySearch::binary_search(long key, std::function<void(long)> onFound) co
   }
 }
 
-std::size_t BinarySearch::count(long key) const
+template<typename KeyType>
+std::size_t BinarySearch<KeyType>::count(KeyType key) const
 {
   std::size_t count = 0;
-  binary_search(key, [&count](long){ count++; });
+  binary_search(key, [&count](KeyType){ count++; });
   return count;
 }

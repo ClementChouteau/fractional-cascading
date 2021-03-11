@@ -4,18 +4,19 @@
 #include <algorithm>
 #include <functional>
 
+template<typename KeyType>
 class BinarySearch
 {
 public:
-  template<typename InputType>
-  BinarySearch(InputType&& input);
+  template<typename Input>
+  BinarySearch(Input&& input);
 
-  void binary_search(long key, std::function<void(long)> onFound) const;
+  void binary_search(KeyType key, std::function<void(KeyType)> onFound) const;
 
-  std::size_t count(long key) const;
+  std::size_t count(KeyType key) const;
 
 private:
-  std::vector<std::vector<long>> _input;
+  std::vector<std::vector<KeyType>> _input;
 };
 
 #include "naive_binary_search.hxx"
