@@ -5,8 +5,8 @@
 #include "naive_binary_search.hpp"
 #include "generation.hpp"
 
-constexpr long N = 10000; // number of lists
-constexpr long M = 8000; // max size of a list
+constexpr long N = 100; // number of lists
+constexpr long M = 800000; // max size of a list
 
 // From https://stackoverflow.com/questions/34460744/flushing-the-cache-to-prevent-benchmarking-fluctiations
 void flush_cache()
