@@ -15,7 +15,6 @@ void FractionalCascading<KeyType>::binary_search(KeyType key, std::function<void
   const auto it = std::lower_bound(_cascade[0].begin(), _cascade[0].end(), key);
   const auto* lower_bound = (it != _cascade[0].end()) ? &*it : nullptr;
 
-  /// @warning this is true only if the non promoted are always before the promoted
   if (lower_bound && lower_bound->value == key && !lower_bound->isPromoted())
     onFound(key);
 
