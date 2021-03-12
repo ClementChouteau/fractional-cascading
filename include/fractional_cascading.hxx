@@ -23,7 +23,7 @@ void FractionalCascading<KeyType>::binary_search(KeyType key, std::function<void
   for (std::size_t i=1; i<_cascade.size(); ++i)
   {
     if (_cascade[i].empty())
-      break;
+      return;
 
     if (lower == nullptr)
       lower = &_cascade[i][0];
