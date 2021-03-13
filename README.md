@@ -7,6 +7,9 @@ This is a simple project to demonstrate the data structure technique called Frac
 
 ![alt text](doc/Fractional_cascading_example.svg "Fractional Cascading example from Wikipedia")
 
+**Remark:** *"searching for a value" means finding either lower/upper bounds, otherwise merging the lists or hashing could better solve this problem.*
+*In the picture above, if we search the lower bound of 13 we should find \[12, 13, 9\]*
+
 [(Erik Demaine) Quick explanation of Fractional Cascading](https://www.youtube.com/watch?v=NMxLL3D5qd8&t=3270s)
 
 [(Erik Demaine) 6.851: Advanced Data Structures (Spring'12)](http://courses.csail.mit.edu/6.851/spring12/)
