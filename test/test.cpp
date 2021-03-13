@@ -48,7 +48,11 @@ TEST_P(FractionalCascadingTest, shouldFindSameResultsAsNaive)
   for (long i=0; i<GetParam().repetitions; i++)
   {
     long key = keysDistribution(rng);
-    EXPECT_EQ(binarySearch.count(key), cascade.count(key));
+    long count1 = 0;
+    binarySearch.lower_bound(key, [&](long lower){ count1 += lower; });
+    long count2 = 0;
+    cascade.lower_bound(key, [&](long lower){ count2 += lower; });
+    EXPECT_EQ(count1, count2);
   }
 }
 
