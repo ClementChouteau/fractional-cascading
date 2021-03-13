@@ -6,20 +6,25 @@
 
 #include "cascading_element.hpp"
 
+template <typename T>
+using ElementIt = typename std::vector<Element<T>>::const_iterator;
+
 template<typename KeyType>
 class FractionalCascading
 {
 public:
   FractionalCascading(const std::vector<std::vector<KeyType>>& input);
 
-  void binary_search(KeyType key, std::function<void(KeyType)> onFound) const;
+  void lower_bound(KeyType key, std::function<void(KeyType)> onFound) const;
 
   std::size_t count(KeyType key) const;
 
 private:
   std::vector<std::vector<Element<KeyType>>> build_fractional_cascading(const std::vector<std::vector<KeyType>>& input);
 
-  inline std::pair<const Element<KeyType>*, const Element<KeyType>*> get_nearest_lower_upper_promoted(const Element<KeyType>* first, const Element<KeyType>* last, const Element<KeyType>* upper) const;
+  inline ElementIt<KeyType> get_nearest_lower_upper_promoted(
+    ElementIt<KeyType> begin, ElementIt<KeyType> end,
+    ElementIt<KeyType> lower) const;
 
   const std::vector<std::vector<Element<KeyType>>> _cascade;
 };

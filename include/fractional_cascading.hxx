@@ -7,51 +7,57 @@ FractionalCascading<KeyType>::FractionalCascading(const std::vector<std::vector<
 }
 
 template<typename KeyType>
-void FractionalCascading<KeyType>::binary_search(KeyType key, std::function<void(KeyType)> onFound) const
+void FractionalCascading<KeyType>::lower_bound(KeyType key, std::function<void(KeyType)> onFound) const
 {
   if (_cascade.empty() || _cascade[0].empty())
     return;
 
-  const auto it = std::lower_bound(_cascade[0].begin(), _cascade[0].end(), key);
-  const auto* lower_bound = (it != _cascade[0].end()) ? &*it : nullptr;
+  // std::pair containing a pair of iterators defining the wanted range,
+  // the first pointing to the first element that is not less than value (>= value)
+  // and the second pointing to the first element greater than value. (>value)
+  // elements in [first, last[ == key, and may be promoted or not
 
-  if (lower_bound && lower_bound->value == key && !lower_bound->isPromoted())
-    onFound(key);
+  // If there are no elements not less than value, last is returned as the first element.
+  // Similarly if there are no elements greater than value, last is returned as the second element
+  auto lower = std::lower_bound(_cascade[0].begin(), _cascade[0].end(), key);
 
-  auto [lower, upper] = get_nearest_lower_upper_promoted(&_cascade[0].front(), &_cascade[0].back(), lower_bound);
+  if (lower != _cascade[0].end())
+  {
+    if (!lower->isPromoted())
+      onFound(lower->value);
+    else if (lower->next)
+      onFound(lower->next->value);
+  }
+
+  lower = get_nearest_lower_upper_promoted(_cascade[0].begin(), _cascade[0].end(), lower);
 
   for (std::size_t i=1; i<_cascade.size(); ++i)
   {
     if (_cascade[i].empty())
       return;
 
-    if (lower == nullptr)
-      lower = &_cascade[i][0];
+    // From equal_range of i-1, deduce equal_range of i
+    if (lower == _cascade[i-1].end())
+      lower = _cascade[i].end();
     else
-      lower = lower->out;
-    if (upper == nullptr)
-      upper = &_cascade[i].back();
-    else
-      upper = upper->out;
+      lower = _cascade[i].begin() + (lower->out - &_cascade[i][0]);
+    std::size_t count = 0;
+    while (lower != _cascade[i].begin() && (lower-1)->value >= key)
+      lower--;
+    while (lower != _cascade[i].end() && lower->value < key)
+      lower++;
 
-    assert((upper - lower) <= 3);
-    for (const auto* ptr = lower; ptr <= upper; ptr++)
-      if (ptr->value == key)
-      {
-        if (!ptr->isPromoted())
-          onFound(ptr->value);
-        std::tie(lower, upper) = get_nearest_lower_upper_promoted(&_cascade[i].front(), &_cascade[i].back(), ptr);
-        goto next_line;
-      }
-      else if  (ptr->value > key)
-      {
-        std::tie(lower, upper) = get_nearest_lower_upper_promoted(&_cascade[i].front(), &_cascade[i].back(), ptr);
-        goto next_line;
-      }
+    assert(lower == std::lower_bound(_cascade[i].begin(), _cascade[i].end(), key));
 
-    std::tie(lower, upper) = get_nearest_lower_upper_promoted(&_cascade[i].front(), &_cascade[i].back(), nullptr);
+    if (lower != _cascade[i].end())
+    {
+      if (!lower->isPromoted())
+        onFound(lower->value);
+      else if (lower->next)
+        onFound(lower->next->value);
+    }
 
-    next_line:;
+    lower = get_nearest_lower_upper_promoted(_cascade[i].begin(), _cascade[i].end(), lower);
   }
 }
 
@@ -59,7 +65,7 @@ template<typename KeyType>
 std::size_t FractionalCascading<KeyType>::count(KeyType key) const
 {
   std::size_t count = 0;
-  binary_search(key, [&count](KeyType){ count++; });
+  lower_bound(key, [&](KeyType lower){ if (lower == key) count++; });
   return count;
 }
 
@@ -165,34 +171,26 @@ std::vector<std::vector<Element<KeyType>>> FractionalCascading<KeyType>::build_f
 }
 
 template<typename KeyType>
-inline std::pair<const Element<KeyType>*, const Element<KeyType>*> FractionalCascading<KeyType>::get_nearest_lower_upper_promoted(const Element<KeyType>* first, const Element<KeyType>* last, const Element<KeyType>* upper) const
+inline ElementIt<KeyType> FractionalCascading<KeyType>::get_nearest_lower_upper_promoted(
+  ElementIt<KeyType> begin, ElementIt<KeyType> end,
+  ElementIt<KeyType> lower) const
 {
-  const Element<KeyType>* lower = nullptr;
-  if (upper)
-  {
-    if (upper->isPromoted())
-    {
-      if (upper != first)
-      {
-        lower = upper-1;
-        if (!lower->isPromoted())
-          lower = lower->prev;
-      }
-    }
-    else
-    {
-      lower = upper->prev;
-      upper = upper->next;
-    }
-  }
-  else
-  {
-    lower = last;
-    if (!lower->isPromoted())
-      lower = lower->prev;
-  }
-  assert(lower == nullptr || lower->isPromoted());
-  assert(upper == nullptr || upper->isPromoted());
+  // elements in [first, last[ == key, but they are not necessarily promoted
 
-  return std::make_pair(lower, upper);
+  if (lower != end)
+  {
+    if (!lower->isPromoted())
+    {
+      if (lower->prev)
+        lower = begin + (lower->prev - &*begin);
+      else if (lower->next)
+        lower = begin + (lower->next - &*begin);
+      else
+        lower = end;
+    }
+    // else ok
+  }
+  assert(lower == end || lower->isPromoted());
+
+  return lower;
 }

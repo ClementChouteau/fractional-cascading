@@ -11,7 +11,7 @@ public:
   template<typename Input>
   BinarySearch(Input&& input);
 
-  void binary_search(KeyType key, std::function<void(KeyType)> onFound) const;
+  void lower_bound(KeyType key, std::function<void(KeyType)> onFound) const;
 
   std::size_t count(KeyType key) const;
 
