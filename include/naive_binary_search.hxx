@@ -10,12 +10,13 @@ BinarySearch<KeyType>::BinarySearch(Input&& input)
 }
 
 template<typename KeyType>
-void BinarySearch<KeyType>::binary_search(KeyType key, std::function<void(KeyType)> onFound) const
+void BinarySearch<KeyType>::lower_bound(KeyType key, std::function<void(KeyType)> onFound) const
 {
   for (const auto& list : _input)
   {
-    if (std::binary_search(list.begin(), list.end(), key))
-      onFound(key);
+    const auto it = std::lower_bound(list.begin(), list.end(), key);
+    if (it != list.end())
+      onFound(*it);
   }
 }
 
@@ -23,6 +24,6 @@ template<typename KeyType>
 std::size_t BinarySearch<KeyType>::count(KeyType key) const
 {
   std::size_t count = 0;
-  binary_search(key, [&count](KeyType){ count++; });
+  lower_bound(key, [&](KeyType lower){ if (lower == key) count++; });
   return count;
 }

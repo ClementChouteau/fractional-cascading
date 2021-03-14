@@ -19,3 +19,9 @@ inline bool operator<(const Element<KeyType>& rhs, KeyType lhs)
 {
   return rhs.value < lhs;
 }
+
+template<typename KeyType>
+inline bool operator<(KeyType rhs, const Element<KeyType>& lhs)
+{
+  return rhs < lhs.value;
+}
