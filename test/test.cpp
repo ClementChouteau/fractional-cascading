@@ -39,6 +39,28 @@ TEST(FractionalCascadingTest, simpleTest)
   EXPECT_EQ(cascade.count(100), 0);
 }
 
+TEST(FractionalCascadingTest, iterationTest)
+{
+  std::vector<std::vector<long>> input =
+    {
+      {37},
+      {51},
+      {92},
+      {65},
+      {83},
+      {67}
+    };
+
+  auto cascade = FractionalCascading(std::move(input));
+  {
+    long count = 0;
+    for (const auto* lowerPtr : cascade.lower_bound_iterator(65))
+      if (lowerPtr)
+        count += *lowerPtr;
+    EXPECT_EQ(count, 92+65+83+67); // const iteration
+  }
+}
+
 TEST_P(FractionalCascadingTest, shouldFindSameResultsAsNaive)
 {
   auto input = generate_input(GetParam().numberOfLists, GetParam().numberOfItems);
