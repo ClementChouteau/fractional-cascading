@@ -7,67 +7,20 @@ FractionalCascading<KeyType>::FractionalCascading(const std::vector<std::vector<
 }
 
 template<typename KeyType>
-void FractionalCascading<KeyType>::lower_bound(KeyType key, std::function<void(KeyType)> onFound) const
-{
-  if (_cascade.empty() || _cascade[0].empty())
-    return;
-
-  // std::pair containing a pair of iterators defining the wanted range,
-  // the first pointing to the first element that is not less than value (>= value)
-  // and the second pointing to the first element greater than value. (>value)
-  // elements in [first, last[ == key, and may be promoted or not
-
-  // If there are no elements not less than value, last is returned as the first element.
-  // Similarly if there are no elements greater than value, last is returned as the second element
-  auto lower = std::lower_bound(_cascade[0].begin(), _cascade[0].end(), key);
-
-  if (lower != _cascade[0].end())
-  {
-    if (!lower->isPromoted())
-      onFound(lower->value);
-    else if (lower->next)
-      onFound(lower->next->value);
-  }
-
-  lower = get_nearest_lower_upper_promoted(_cascade[0].begin(), _cascade[0].end(), lower);
-
-  for (std::size_t i=1; i<_cascade.size(); ++i)
-  {
-    if (_cascade[i].empty())
-      return;
-
-    // From equal_range of i-1, deduce equal_range of i
-    if (lower == _cascade[i-1].end())
-      lower = _cascade[i].end();
-    else
-      lower = _cascade[i].begin() + (lower->out - &_cascade[i][0]);
-    std::size_t count = 0;
-    while (lower != _cascade[i].begin() && (lower-1)->value >= key)
-      lower--;
-    while (lower != _cascade[i].end() && lower->value < key)
-      lower++;
-
-    assert(lower == std::lower_bound(_cascade[i].begin(), _cascade[i].end(), key));
-
-    if (lower != _cascade[i].end())
-    {
-      if (!lower->isPromoted())
-        onFound(lower->value);
-      else if (lower->next)
-        onFound(lower->next->value);
-    }
-
-    lower = get_nearest_lower_upper_promoted(_cascade[i].begin(), _cascade[i].end(), lower);
-  }
-}
-
-template<typename KeyType>
 std::size_t FractionalCascading<KeyType>::count(KeyType key) const
 {
   std::size_t count = 0;
-  lower_bound(key, [&](KeyType lower){ if (lower == key) count++; });
+  for (auto* lowerPtr : lower_bound_iterator(key))
+    if (lowerPtr && *lowerPtr == key)
+      count++;
   return count;
 }
+
+template<typename KeyType>
+FractionalCascadingLowerBound<KeyType> FractionalCascading<KeyType>::lower_bound_iterator(KeyType key) const
+{
+  return {*this, key};
+};
 
 template<typename KeyType>
 std::vector<std::vector<Element<KeyType>>> FractionalCascading<KeyType>::build_fractional_cascading(const std::vector<std::vector<KeyType>>& input)
@@ -168,29 +121,4 @@ std::vector<std::vector<Element<KeyType>>> FractionalCascading<KeyType>::build_f
   }
 
   return output;
-}
-
-template<typename KeyType>
-inline ElementIt<KeyType> FractionalCascading<KeyType>::get_nearest_lower_upper_promoted(
-  ElementIt<KeyType> begin, ElementIt<KeyType> end,
-  ElementIt<KeyType> lower) const
-{
-  // elements in [first, last[ == key, but they are not necessarily promoted
-
-  if (lower != end)
-  {
-    if (!lower->isPromoted())
-    {
-      if (lower->prev)
-        lower = begin + (lower->prev - &*begin);
-      else if (lower->next)
-        lower = begin + (lower->next - &*begin);
-      else
-        lower = end;
-    }
-    // else ok
-  }
-  assert(lower == end || lower->isPromoted());
-
-  return lower;
 }
