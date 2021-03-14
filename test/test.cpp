@@ -73,7 +73,9 @@ TEST_P(FractionalCascadingTest, shouldFindSameResultsAsNaive)
     long count1 = 0;
     binarySearch.lower_bound(key, [&](long lower){ count1 += lower; });
     long count2 = 0;
-    cascade.lower_bound(key, [&](long lower){ count2 += lower; });
+    for (const auto* lowerPtr : cascade.lower_bound_iterator(key))
+      if (lowerPtr)
+        count2 += *lowerPtr;
     EXPECT_EQ(count1, count2);
   }
 }
