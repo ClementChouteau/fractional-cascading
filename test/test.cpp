@@ -61,7 +61,7 @@ TEST(FractionalCascadingTest, iterationTest)
   }
 }
 
-TEST_P(FractionalCascadingTest, shouldFindSameResultsAsNaive)
+TEST_P(FractionalCascadingTest, shouldFindSameLowerBoundResultsAsNaive)
 {
   auto input = generate_input(GetParam().numberOfLists, GetParam().numberOfItems);
   const auto binarySearch = BinarySearch<long>(input);
@@ -76,33 +76,54 @@ TEST_P(FractionalCascadingTest, shouldFindSameResultsAsNaive)
     for (const auto* lowerPtr : cascade.lower_bound_iterator(key))
       if (lowerPtr)
         count2 += *lowerPtr;
+  }
+}
+
+TEST_P(FractionalCascadingTest, shouldFindSameUpperBoundResultsAsNaive)
+{
+  auto input = generate_input(GetParam().numberOfLists, GetParam().numberOfItems);
+  const auto binarySearch = BinarySearch<long>(input);
+  const auto cascade = FractionalCascading<long>(input);
+
+  for (long i=0; i<GetParam().repetitions; i++)
+  {
+    long key = keysDistribution(rng);
+    long count1 = 0;
+    binarySearch.upper_bound(key, [&](long lower){ count1 += lower; });
+    long count2 = 0;
+    for (const auto* upperPtr : cascade.upper_bound_iterator(key))
+      if (upperPtr)
+        count2 += *upperPtr;
     EXPECT_EQ(count1, count2);
   }
 }
 
+const auto testValues = ::testing::Values(
+  // Edge cases of no lists or empty lists
+  TestCase{0, 0, 1},
+  TestCase{1, 0, 1},
+  TestCase{2, 0, 1},
+  TestCase{3, 0, 1},
+  TestCase{10, 1, 10000},
+  // Small cases
+  TestCase{1, 10, 10000},
+  TestCase{2, 10, 10000},
+  TestCase{3, 10, 10000},
+  TestCase{4, 10, 10000},
+  TestCase{5, 10, 10000},
+  TestCase{6, 10, 10000},
+  TestCase{7, 10, 10000},
+  TestCase{8, 10, 10000},
+  TestCase{9, 10, 10000},
+  TestCase{10, 10, 10000},
+  // Large cases
+  TestCase{100, 100,  1000},
+  TestCase{1000, 100,  100}
+);
+
+
 INSTANTIATE_TEST_CASE_P(
   FractionalCascadingTestInputs,
   FractionalCascadingTest,
-  ::testing::Values(
-    // Edge cases of no lists or empty lists
-    TestCase{0, 0, 1},
-    TestCase{1, 0, 1},
-    TestCase{2, 0, 1},
-    TestCase{3, 0, 1},
-    TestCase{10, 1, 10000},
-    // Small cases
-    TestCase{1, 10, 10000},
-    TestCase{2, 10, 10000},
-    TestCase{3, 10, 10000},
-    TestCase{4, 10, 10000},
-    TestCase{5, 10, 10000},
-    TestCase{6, 10, 10000},
-    TestCase{7, 10, 10000},
-    TestCase{8, 10, 10000},
-    TestCase{9, 10, 10000},
-    TestCase{10, 10, 10000},
-    // Large cases
-    TestCase{100, 100,  1000},
-    TestCase{1000, 100,  100}
-  )
+  testValues
 );
