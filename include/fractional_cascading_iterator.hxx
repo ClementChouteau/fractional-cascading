@@ -152,16 +152,17 @@ public:
 
     iterator& operator++()
     {
-      if (_i < _cascade.size())
+      if (_it != _end)
       {
-        if (!_cascade[_i].empty())
-          _bound = SearchType::get_nearest_promoted(_cascade[_i].begin(), _cascade[_i].end(), _bound);
+        if (!_it->empty())
+          _bound = SearchType::get_nearest_promoted(_it->begin(), _it->end(), _bound);
 
-        _i++;
-        if (_i < _cascade.size() && !_cascade[_i].empty())
+        const auto prev_i = _it;
+        _it++;
+        if (_it != _end && !_it->empty())
         {
           // From equal_range of i-1, deduce equal_range of i
-          _bound = SearchType::next_from_prev(_cascade[_i-1].end(), _cascade[_i].begin(), _cascade[_i].end(), _bound, _key);
+          _bound = SearchType::next_from_prev(prev_i->end(), _it->begin(), _it->end(), _bound, _key);
         }
       }
 
@@ -170,16 +171,16 @@ public:
 
     iterator operator++(int) { iterator retval = *this; ++(*this); return retval; }
 
-    bool operator==(iterator other) const { return _i == other._i; }
+    bool operator==(iterator other) const { return _it == other._it; }
 
     bool operator!=(iterator other) const { return !(*this == other); }
 
     const KeyType* operator*() const
     {
-      if (_cascade[_i].empty())
+      if (_it->empty())
         return nullptr;
 
-      if (_bound != _cascade[_i].end())
+      if (_bound != _it->end())
         return SearchType::get_value(_bound);
 
       return nullptr;
@@ -189,23 +190,27 @@ public:
     friend class FractionalCascadingIterable<KeyType, LowerBoundSearch<KeyType>>;
     friend class FractionalCascadingIterable<KeyType, UpperBoundSearch<KeyType>>;
 
-    iterator(const FractionalCascadingIterable& fractionalCascadingIterable, std::size_t i = 0)
-      : _cascade(fractionalCascadingIterable._fractionalCascading._cascade)
-      , _key(fractionalCascadingIterable._key)
-      , _i(i)
+    iterator(
+      typename std::vector<std::vector<Element<KeyType>>>::const_iterator it,
+      typename std::vector<std::vector<Element<KeyType>>>::const_iterator end,
+      KeyType key
+    )
+    : _it(it)
+    , _end(end)
+    , _key(key)
     {
-      if (!_cascade.empty() && !_cascade[0].empty())
-        _bound = SearchType::bound_search(_cascade[0].begin(), _cascade[0].end(), _key);
+      if (_it != _end && !_it->empty())
+        _bound = SearchType::bound_search(_it->begin(), _it->end(), _key);
     }
 
-    const std::vector<std::vector<Element<KeyType>>>& _cascade;
     KeyType _key;
-    std::size_t _i = 0;
+    typename std::vector<std::vector<Element<KeyType>>>::const_iterator _it;
+    typename std::vector<std::vector<Element<KeyType>>>::const_iterator _end;
     ElementIt<KeyType> _bound;
   };
 
-  iterator begin() const { return *this; }
-  iterator end() const { return {*this, _fractionalCascading._cascade.size()}; }
+  iterator begin() const { return {_fractionalCascading._cascade.begin(), _fractionalCascading._cascade.end(), _key}; }
+  iterator end() const { return {_fractionalCascading._cascade.end(), _fractionalCascading._cascade.end(), _key}; }
 
 private:
   underlying_reference _fractionalCascading;
