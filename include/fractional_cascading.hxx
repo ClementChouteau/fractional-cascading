@@ -17,7 +17,13 @@ std::size_t FractionalCascading<KeyType>::count(KeyType key) const
 }
 
 template<typename KeyType>
-FractionalCascadingLowerBound<KeyType> FractionalCascading<KeyType>::lower_bound_iterator(KeyType key) const
+FractionalCascadingIterable<KeyType, LowerBoundSearch<KeyType>> FractionalCascading<KeyType>::lower_bound_iterator(KeyType key) const
+{
+  return {*this, key};
+};
+
+template<typename KeyType>
+FractionalCascadingIterable<KeyType, UpperBoundSearch<KeyType>> FractionalCascading<KeyType>::upper_bound_iterator(KeyType key) const
 {
   return {*this, key};
 };
